@@ -21,6 +21,7 @@ module.exports = function(options, callback) {
 	}
 
 	options.modDir += path.sep
+	options.compression = parseInt(options.compression, 10) || 6
 
 	let evaluator = function(file, stats) {
 		return stats.isFile() && (path.extname(file) !== '.png')
@@ -37,7 +38,7 @@ module.exports = function(options, callback) {
 			}
 
 			// png file to crush!
-			let p = sharp(filePath).png({ compression: 6 }).toFile(filePath + '.crushed')
+			let p = sharp(filePath).png({ compression: options.compression }).toFile(filePath + '.crushed')
 			p.then(() => {
 				return
 			}, (err) => {
