@@ -38,8 +38,8 @@ module.exports = function(options, callback) {
 
 			// png file to crush!
 			let p = sharp(filePath).png({ compression: 6 }).toFile(filePath + '.crushed')
-			p.then((info) => {
-				console.log('crushed ' + filePath + ' down to ' + info.size + ' bytes!')
+			p.then(() => {
+				return
 			}, (err) => {
 				console.error('failed to crush ' + filePath)
 				console.error(err.stack)
@@ -56,13 +56,15 @@ module.exports = function(options, callback) {
 				}
 
 				let p = fs.move(filePath + '.crushed', filePath, { overwrite: true })
-				p.then((info) => {
-					console.log('overwrote ' + filePath)
-					return 
-				}, (err) => {
+				p.then(() => {
+					return fs.stat(filePath)
+				}).then((info) => {
+					console.log('crushed ' + filePath + 'down to ' + info.size + ' bytes!')
+				}).catch((err) => {
 					console.error('failed to overwrite ' + filePath)
 					console.error(err.stack)
 				})
+
 				promises.push(p)
 			})
 
