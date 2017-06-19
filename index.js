@@ -59,7 +59,7 @@ module.exports = function(options, callback) {
 				p.then(() => {
 					return fs.stat(filePath)
 				}).then((info) => {
-					console.log('crushed ' + filePath + 'down to ' + info.size + ' bytes!')
+					console.log('crushed ' + filePath + ' down to ' + info.size + ' bytes!')
 				}).catch((err) => {
 					console.error('failed to overwrite ' + filePath)
 					console.error(err.stack)
