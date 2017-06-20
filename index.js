@@ -24,12 +24,11 @@ module.exports = function(options, callback) {
 	options.compression = parseInt(options.compression, 10) || 6
 
 	let evaluator = function(file, stats) {
-		return stats.isFile() && (path.extname(file) !== '.png')
+		let result = stats.isFile() && (path.extname(file) !== '.png')
+		return result
 	}
 
-	r_readdir(options.modDir, [evaluator], function(err, files) {
-		if(err) throw err
-
+	r_readdir(options.modDir, [evaluator]).then((files) => {
 		let promises = []
 		files.forEach(function(filePath) {
 			// sanity check
@@ -39,44 +38,43 @@ module.exports = function(options, callback) {
 
 			// png file to crush!
 			let p = sharp(filePath).png({ compression: options.compression }).toFile(filePath + '.crushed')
-			p.then(() => {
-				return
-			}, (err) => {
+			p.catch((err) => {
 				console.error('failed to crush ' + filePath)
 				console.error(err.stack)
 			})
 			promises.push(p)
 		})
 		
-		Promise.all(promises).then(() => {
-			let promises = []
-			files.forEach(function(filePath) {
-				// sanity check
-				if(!filePath.startsWith(options.modDir)) {
-					return
-				}
+		return Promise.all(promises).then(() => {
+			return Promise.resolve(files)
+		})
+	}).then((files) => {
+		let promises = []
+		files.forEach(function(filePath) {
+			// sanity check
+			if(!filePath.startsWith(options.modDir)) {
+				return
+			}
 
-				let p = fs.move(filePath + '.crushed', filePath, { overwrite: true })
-				p.then(() => {
-					return fs.stat(filePath)
-				}).then((info) => {
-					console.log('crushed ' + filePath + ' down to ' + info.size + ' bytes!')
-				}).catch((err) => {
-					console.error('failed to overwrite ' + filePath)
-					console.error(err.stack)
-				})
-
-				promises.push(p)
+			let p = fs.move(filePath + '.crushed', filePath, { overwrite: true })
+			p.then(() => {
+				return fs.stat(filePath)
+			}).then((info) => {
+				console.log('crushed ' + filePath + ' down to ' + info.size + ' bytes!')
+			}).catch((err) => {
+				console.error('failed to overwrite ' + filePath)
+				console.error(err.stack)
 			})
 
-			return Promise.all(promises)
+			promises.push(p)
 		})
-		.then(() => {
-			if(!!callback) {
-				callback()
-			} else {
-				process.exit(0)
-			}
-		})
+
+		return Promise.all(promises)
+	}).then(() => {
+		if(!!callback) {
+			callback()
+		} else {
+			process.exit(0)
+		}
 	})
 }

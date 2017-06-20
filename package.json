@@ -1,6 +1,6 @@
 {
   "name": "sb-pngsqueeze",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Starbound mod helper - PNG asset file crushing",
   "main": "index.js",
   "scripts": {
